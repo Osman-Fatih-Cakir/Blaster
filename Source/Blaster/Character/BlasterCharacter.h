@@ -36,6 +36,8 @@ protected:
 	void Move_Input(const FInputActionValue& Value);
 	void Look_Input(const FInputActionValue& Value);
 	void Equip_Input(const FInputActionValue& Value);
+	void Crouch_Input(const FInputActionValue& Value);
+	void UnCrouch_Input(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* lastWeapon);
@@ -60,6 +62,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* EquipAction = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* CrouchAction = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* UnCrouchAction = nullptr;
 
 	//
 

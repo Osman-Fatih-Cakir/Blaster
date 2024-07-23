@@ -13,6 +13,7 @@
 #include "Net/UnrealNetwork.h"
 #include "../Weapon/Weapon.h"
 #include "../BlasterComponents/CombatComponent.h"
+#include "../DebugHelper.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -35,6 +36,8 @@ ABlasterCharacter::ABlasterCharacter()
 
   Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
   Combat->SetIsReplicated(true);
+
+  GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -73,6 +76,10 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
     // Equip
     EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &ThisClass::Equip_Input);
+
+    // Crouch
+    EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ThisClass::Crouch_Input);
+    EnhancedInputComponent->BindAction(UnCrouchAction, ETriggerEvent::Triggered, this, &ThisClass::UnCrouch_Input);
   }
 }
 
@@ -142,6 +149,16 @@ void ABlasterCharacter::Equip_Input(const FInputActionValue& Value)
       ServerEquipButtonOPressed();
     }
   }
+}
+
+void ABlasterCharacter::Crouch_Input(const FInputActionValue& Value)
+{
+  Crouch();
+}
+
+void ABlasterCharacter::UnCrouch_Input(const FInputActionValue& Value)
+{
+  UnCrouch();
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* weapon)
