@@ -18,6 +18,7 @@ class BLASTER_API UCombatComponent : public UActorComponent
 
 public:	
 	UCombatComponent();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void EquipWeapon(AWeapon* weapon);
 
@@ -26,5 +27,7 @@ protected:
 
 protected:
 	ABlasterCharacter* Character = nullptr;
+
+	UPROPERTY(Replicated)
 	AWeapon* EquippedWeapon = nullptr;
 };
