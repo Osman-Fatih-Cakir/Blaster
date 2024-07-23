@@ -10,6 +10,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class UWidgetComponent;
 struct FInputActionValue;
 
 UCLASS()
@@ -51,4 +52,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	UCameraComponent* FollowCamera = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* OverheadWidget = nullptr;
 };
