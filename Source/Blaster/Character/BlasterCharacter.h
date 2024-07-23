@@ -13,6 +13,7 @@ class UInputAction;
 class UWidgetComponent;
 struct FInputActionValue;
 class AWeapon;
+class UCombatComponent;
 
 UCLASS()
 class BLASTER_API ABlasterCharacter : public ACharacter
@@ -21,22 +22,25 @@ class BLASTER_API ABlasterCharacter : public ACharacter
 
 public:
 	ABlasterCharacter();
-
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void PostInitializeComponents() override;
 
 	void SetOverlappingWeapon(AWeapon* weapon);
 
 protected:
 	virtual void BeginPlay() override;
 
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
+	void Move_Input(const FInputActionValue& Value);
+	void Look_Input(const FInputActionValue& Value);
+	void Equip_Input(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* lastWeapon);
+
+	UFUNCTION(Server, Reliable)
+	void ServerEquipButtonOPressed();
 
 protected:
 
@@ -53,6 +57,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* EquipAction = nullptr;
+
 	//
 
 	UPROPERTY(VisibleAnywhere, Category=Camera)
@@ -63,6 +70,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* OverheadWidget = nullptr;
+
+	UPROPERTY(VisibleAnywhere)
+	UCombatComponent* Combat = nullptr;
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	AWeapon* OverlappingWeapon = nullptr;
