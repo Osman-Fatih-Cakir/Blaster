@@ -10,6 +10,8 @@
 #include "../HUD/OverheadWidget.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "../Weapon/Weapon.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -31,6 +33,13 @@ ABlasterCharacter::ABlasterCharacter()
   OverheadWidget->SetupAttachment(RootComponent);
 }
 
+void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+  Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+  DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
+}
+
 void ABlasterCharacter::BeginPlay()
 {
   Super::BeginPlay();
@@ -43,6 +52,11 @@ void ABlasterCharacter::BeginPlay()
       Subsystem->AddMappingContext(DefaultMappingContext, 0);
     }
   }
+}
+
+void ABlasterCharacter::Tick(float DeltaTime)
+{
+  Super::Tick(DeltaTime);
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -96,8 +110,34 @@ void ABlasterCharacter::Look(const FInputActionValue& Value)
   }
 }
 
-void ABlasterCharacter::Tick(float DeltaTime)
+void ABlasterCharacter::SetOverlappingWeapon(AWeapon* weapon)
 {
-  Super::Tick(DeltaTime);
+  if (weapon == nullptr && OverlappingWeapon)
+  {
+    OverlappingWeapon->ShowPickupWidget(false);
+  }
 
+  OverlappingWeapon = weapon;
+
+  if (IsLocallyControlled())
+  {
+    // OnRep_OverlappingWeapon won't be called if we are on server. So we do the same logic here
+    if (OverlappingWeapon)
+    {
+      OverlappingWeapon->ShowPickupWidget(true);
+    }
+  }
+}
+
+void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* lastWeapon)
+{
+  if (OverlappingWeapon)
+  {
+    OverlappingWeapon->ShowPickupWidget(true);
+  }
+
+  if (lastWeapon && OverlappingWeapon == nullptr)
+  {
+    lastWeapon->ShowPickupWidget(false);
+  }
 }

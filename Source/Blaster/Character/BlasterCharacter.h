@@ -12,6 +12,7 @@ class UInputMappingContext;
 class UInputAction;
 class UWidgetComponent;
 struct FInputActionValue;
+class AWeapon;
 
 UCLASS()
 class BLASTER_API ABlasterCharacter : public ACharacter
@@ -24,11 +25,18 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void SetOverlappingWeapon(AWeapon* weapon);
+
 protected:
 	virtual void BeginPlay() override;
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeapon* lastWeapon);
 
 protected:
 
@@ -55,4 +63,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* OverheadWidget = nullptr;
+
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
+	AWeapon* OverlappingWeapon = nullptr;
 };
