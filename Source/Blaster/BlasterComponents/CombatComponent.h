@@ -25,9 +25,12 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+
 protected:
 	ABlasterCharacter* Character = nullptr;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon = nullptr;
 };

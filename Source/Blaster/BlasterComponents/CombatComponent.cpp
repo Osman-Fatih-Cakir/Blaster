@@ -7,6 +7,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -25,6 +26,15 @@ void UCombatComponent::BeginPlay()
   Super::BeginPlay();
 }
 
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+  if (EquippedWeapon && Character)
+  {
+    Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+    Character->bUseControllerRotationYaw = true;
+  }
+}
+
 void UCombatComponent::EquipWeapon(AWeapon* weapon)
 {
   if (Character == nullptr || weapon == nullptr) return;
@@ -37,4 +47,6 @@ void UCombatComponent::EquipWeapon(AWeapon* weapon)
     handSocket->AttachActor(EquippedWeapon, Character->GetMesh());
   }
   EquippedWeapon->SetOwner(Character);
+  Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+  Character->bUseControllerRotationYaw = true;
 }
