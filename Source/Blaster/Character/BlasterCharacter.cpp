@@ -49,6 +49,8 @@ ABlasterCharacter::ABlasterCharacter()
   TurningInPlace = ETurningInPlace::ETIP_NotTurning;
   NetUpdateFrequency = 66.0f;
   MinNetUpdateFrequency = 33.0f;
+
+  GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 }
 
 void ABlasterCharacter::BeginPlay()
