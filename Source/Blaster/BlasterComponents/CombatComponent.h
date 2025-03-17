@@ -33,6 +33,12 @@ protected:
 	void ServerSetAiming(bool bIsAiming);
 	void FireButtonPressed(bool bPressed);
 
+	UFUNCTION(Server, Reliable)
+	void ServerFire();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFire();
+
 protected:
 	ABlasterCharacter* Character = nullptr;
 
