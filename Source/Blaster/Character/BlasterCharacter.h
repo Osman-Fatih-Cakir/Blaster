@@ -29,6 +29,7 @@ public:
 
 	void SetOverlappingWeapon(AWeapon* weapon);
 	bool IsWeaponEquipped();
+	bool IsAiming() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -38,6 +39,8 @@ protected:
 	void Equip_Input(const FInputActionValue& Value);
 	void Crouch_Input(const FInputActionValue& Value);
 	void UnCrouch_Input(const FInputActionValue& Value);
+  void Aim_Input();
+  void UnAim_Input();
 
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* lastWeapon);
@@ -53,21 +56,20 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction = nullptr;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction = nullptr;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction = nullptr;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* EquipAction = nullptr;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* CrouchAction = nullptr;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* UnCrouchAction = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* AimAction = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* UnAimAction = nullptr;
 
 	//
 

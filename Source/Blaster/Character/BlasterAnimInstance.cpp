@@ -47,4 +47,6 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
   const float target = delta.Yaw / DeltaTime;
   const float interp = FMath::FInterpTo(Lean, target, DeltaTime, 6.0f);
   Lean = FMath::Clamp(interp, -90.0f, 90.0f);
+
+  bAiming = BlasterCharacter->IsAiming();
 }

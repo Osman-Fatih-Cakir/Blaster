@@ -14,10 +14,14 @@
 #include "../Weapon/Weapon.h"
 #include "../BlasterComponents/CombatComponent.h"
 #include "../DebugHelper.h"
+#include "Components/CapsuleComponent.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
   PrimaryActorTick.bCanEverTick = true;
+
+  GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+  GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
   CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
   CameraBoom->SetupAttachment(GetMesh());
@@ -67,19 +71,18 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
   {
     // Jumping
     EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-
     // Moving
     EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move_Input);
-
     // Looking
     EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look_Input);
-
     // Equip
     EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &ThisClass::Equip_Input);
-
     // Crouch
     EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ThisClass::Crouch_Input);
     EnhancedInputComponent->BindAction(UnCrouchAction, ETriggerEvent::Triggered, this, &ThisClass::UnCrouch_Input);
+    // aiming
+    EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &ThisClass::Aim_Input);
+    EnhancedInputComponent->BindAction(UnAimAction, ETriggerEvent::Triggered, this, &ThisClass::UnAim_Input);
   }
 }
 
@@ -161,6 +164,18 @@ void ABlasterCharacter::UnCrouch_Input(const FInputActionValue& Value)
   UnCrouch();
 }
 
+void ABlasterCharacter::Aim_Input()
+{
+  if (Combat)
+    Combat->SetAiming(true);
+}
+
+void ABlasterCharacter::UnAim_Input()
+{
+  if (Combat)
+    Combat->SetAiming(false);
+}
+
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* weapon)
 {
   if (weapon == nullptr && OverlappingWeapon)
@@ -183,6 +198,11 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon* weapon)
 bool ABlasterCharacter::IsWeaponEquipped()
 {
   return (Combat && Combat->EquippedWeapon != nullptr);
+}
+
+bool ABlasterCharacter::IsAiming() const
+{
+  return (Combat && Combat->bAiming);
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* lastWeapon)
