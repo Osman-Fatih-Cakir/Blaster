@@ -39,6 +39,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	void Jump() override;
 	void Move_Input(const FInputActionValue& Value);
 	void Look_Input(const FInputActionValue& Value);
 	void Equip_Input(const FInputActionValue& Value);

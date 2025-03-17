@@ -43,6 +43,7 @@ ABlasterCharacter::ABlasterCharacter()
   Combat->SetIsReplicated(true);
 
   GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+  GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 850.f);
 
   TurningInPlace = ETurningInPlace::ETIP_NotTurning;
   NetUpdateFrequency = 66.0f;
@@ -90,6 +91,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     // aiming
     EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &ThisClass::Aim_Input);
     EnhancedInputComponent->BindAction(UnAimAction, ETriggerEvent::Triggered, this, &ThisClass::UnAim_Input);
+
+    PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ABlasterCharacter::Jump);
   }
 }
 
@@ -107,6 +110,18 @@ void ABlasterCharacter::PostInitializeComponents()
   if (Combat)
   {
     Combat->Character = this;
+  }
+}
+
+void ABlasterCharacter::Jump()
+{
+  if (bIsCrouched)
+  {
+    UnCrouch();
+  }
+  else
+  {
+    Super::Jump();
   }
 }
 
