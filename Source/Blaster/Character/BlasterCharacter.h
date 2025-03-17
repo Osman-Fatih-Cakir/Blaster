@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Blaster/BlasterTypes/TurningInPlace.h"
 #include "BlasterCharacter.generated.h"
 
 class USpringArmComponent;
@@ -33,6 +34,7 @@ public:
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 	AWeapon* GetEquippedWeapon();
+	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -46,6 +48,7 @@ protected:
   void UnAim_Input();
 
 	void AimOffset(float deltaTime);
+	void TurnInPlace(float DeltaTime);
 
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* lastWeapon);
@@ -93,7 +96,10 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	AWeapon* OverlappingWeapon = nullptr;
 
+	float InterpAO_Yaw;
 	float AO_Yaw;
 	float AO_Pitch;
 	FRotator StartingAimRotation;
+
+	ETurningInPlace TurningInPlace;
 };
