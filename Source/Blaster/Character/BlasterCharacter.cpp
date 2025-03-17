@@ -16,6 +16,7 @@
 #include "../DebugHelper.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "BlasterAnimInstance.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -93,6 +94,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     EnhancedInputComponent->BindAction(UnAimAction, ETriggerEvent::Triggered, this, &ThisClass::UnAim_Input);
 
     PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ABlasterCharacter::Jump);
+    EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ThisClass::StartFire_Input);
+    EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ThisClass::EndFire_Input);
   }
 }
 
@@ -198,6 +201,22 @@ void ABlasterCharacter::UnAim_Input()
     Combat->SetAiming(false);
 }
 
+void ABlasterCharacter::StartFire_Input()
+{
+  if (Combat)
+  {
+    Combat->FireButtonPressed(true);
+  }
+}
+
+void ABlasterCharacter::EndFire_Input()
+{
+  if (Combat)
+  {
+    Combat->FireButtonPressed(false);
+  }
+}
+
 void ABlasterCharacter::AimOffset(float deltaTime)
 {
   if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
@@ -255,6 +274,20 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime)
       TurningInPlace = ETurningInPlace::ETIP_NotTurning;
       StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
     }
+  }
+}
+
+void ABlasterCharacter::PlayFireMontage(bool bAiming)
+{
+  if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+
+  UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+  if (AnimInstance && FireWeaponMontage)
+  {
+    AnimInstance->Montage_Play(FireWeaponMontage);
+    FName SectionName;
+    SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
+    AnimInstance->Montage_JumpToSection(SectionName);
   }
 }
 
