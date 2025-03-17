@@ -30,6 +30,8 @@ public:
 	void SetOverlappingWeapon(AWeapon* weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming() const;
+	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
+	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -41,6 +43,8 @@ protected:
 	void UnCrouch_Input(const FInputActionValue& Value);
   void Aim_Input();
   void UnAim_Input();
+
+	void AimOffset(float deltaTime);
 
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* lastWeapon);
@@ -87,4 +91,8 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	AWeapon* OverlappingWeapon = nullptr;
+
+	float AO_Yaw;
+	float AO_Pitch;
+	FRotator StartingAimRotation;
 };
