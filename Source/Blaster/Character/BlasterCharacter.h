@@ -39,6 +39,9 @@ public:
 
   void PlayFireMontage(bool bAiming);
 
+  UFUNCTION(NetMulticast, Unreliable)
+  void MulticastHit();
+
 protected:
   virtual void BeginPlay() override;
 
@@ -61,6 +64,9 @@ protected:
 
   UFUNCTION(Server, Reliable)
   void ServerEquipButtonOPressed();
+
+  void HideCameraIfCharacterClose();
+  void PlayHitReactMontage();
 
 protected:
 
@@ -87,7 +93,12 @@ protected:
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
   UInputAction* FireAction = nullptr;
 
+
+  UPROPERTY(EditAnywhere)
+  float CameraThreshold = 200.f;
+
   //
+
 
   UPROPERTY(VisibleAnywhere, Category = Camera)
   USpringArmComponent* CameraBoom = nullptr;
@@ -113,4 +124,7 @@ protected:
 
   UPROPERTY(EditAnywhere, Category = Combat)
   class UAnimMontage* FireWeaponMontage;
+
+  UPROPERTY(EditAnywhere, Category = Combat)
+  UAnimMontage* HitReactMontage;
 };
