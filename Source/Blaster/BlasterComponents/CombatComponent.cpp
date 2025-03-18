@@ -43,6 +43,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
   DOREPLIFETIME(UCombatComponent, EquippedWeapon);
   DOREPLIFETIME(UCombatComponent, bAiming);
+  DOREPLIFETIME(UCombatComponent, CombatState);
 }
 
 void UCombatComponent::BeginPlay()
@@ -104,7 +105,10 @@ void UCombatComponent::OnRep_EquippedWeapon()
 void UCombatComponent::EquipWeapon(AWeapon* weapon)
 {
   if (Character == nullptr || weapon == nullptr) return;
-
+  if (EquippedWeapon)
+  {
+    EquippedWeapon->Dropped();
+  }
   EquippedWeapon = weapon;
   EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
   const USkeletalMeshSocket* handSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
@@ -113,6 +117,7 @@ void UCombatComponent::EquipWeapon(AWeapon* weapon)
     handSocket->AttachActor(EquippedWeapon, Character->GetMesh());
   }
   EquippedWeapon->SetOwner(Character);
+  EquippedWeapon->SetHUDAmmo();
   Character->GetCharacterMovement()->bOrientRotationToMovement = false;
   Character->bUseControllerRotationYaw = true;
 }
@@ -147,12 +152,18 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 
 void UCombatComponent::Fire()
 {
-  if (bCanFire)
+  if (CanFire())
   {
     bCanFire = false;
     ServerFire(HitTarget);
     StartFireTimer();
   }
+}
+
+bool UCombatComponent::CanFire()
+{
+  if (EquippedWeapon == nullptr) return false;
+  return !EquippedWeapon->IsEmpty() || !bCanFire;
 }
 
 void UCombatComponent::StartFireTimer()
@@ -189,6 +200,44 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
     Character->PlayFireMontage(bAiming);
     EquippedWeapon->Fire(TraceHitTarget);
   }
+}
+
+void UCombatComponent::Reload()
+{
+  if (CombatState != ECombatState::ECS_Reloading)
+    ServerReload();
+}
+
+void UCombatComponent::ServerReload_Implementation()
+{
+  if (Character == nullptr) return;
+
+  CombatState = ECombatState::ECS_Reloading;
+  HandleReload();
+}
+
+void UCombatComponent::FinishReloading()
+{
+  if (Character == nullptr) return;
+  if (Character->HasAuthority())
+  {
+    CombatState = ECombatState::ECS_Unoccupied;
+  }
+}
+
+void UCombatComponent::OnRep_CombatState()
+{
+  switch (CombatState)
+  {
+  case ECombatState::ECS_Reloading:
+    HandleReload();
+    break;
+  }
+}
+
+void UCombatComponent::HandleReload()
+{
+  Character->PlayReloadMontage();
 }
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)

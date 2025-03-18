@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Blaster/BlasterTypes/TurningInPlace.h"
 #include "Blaster/Interfaces/InteractWithCrosshairsInterface.h"
+#include "Blaster/BlasterTypes/CombatState.h"
 #include "BlasterCharacter.generated.h"
 
 class USpringArmComponent;
@@ -40,13 +41,14 @@ public:
   FORCEINLINE bool IsElimmed() const { return bElimmed; }
   FORCEINLINE float GetHealth() const { return Health; }
   FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+  ECombatState GetCombatState() const;
 
   void PlayFireMontage(bool bAiming);
   void Elim();
   void PlayElimMontage();
   UFUNCTION(NetMulticast, Reliable)
   void MulticastElim();
-
+  void PlayReloadMontage();
 protected:
   virtual void BeginPlay() override;
 
@@ -60,6 +62,7 @@ protected:
   void UnAim_Input();
   void StartFire_Input();
   void EndFire_Input();
+  void Reload_Input();
 
   void AimOffset(float deltaTime);
   void TurnInPlace(float DeltaTime);
@@ -108,6 +111,8 @@ protected:
   UInputAction* StartFireAction = nullptr;
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
   UInputAction* EndFireAction = nullptr;
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+  UInputAction* ReloadAction = nullptr;
   UPROPERTY(EditAnywhere, Category = Combat)
   UAnimMontage* ElimMontage;
 
@@ -119,8 +124,11 @@ protected:
   float ElimDelay = 3.f;
 
   void ElimTimerFinished();
-  
+  UPROPERTY()
   class ABlasterPlayerState* BlasterPlayerState;
+
+  UPROPERTY(EditAnywhere, Category = Combat)
+  UAnimMontage* ReloadMontage;
 
   /**
   * Player health
@@ -144,7 +152,7 @@ protected:
   FRotator ProxyRotation;
   float ProxyYaw;
   float TimeSinceLastMovementReplication;
-
+  UPROPERTY()
   class ABlasterPlayerController* BlasterPlayerController;
 
   //
@@ -159,7 +167,7 @@ protected:
   UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
   UWidgetComponent* OverheadWidget = nullptr;
 
-  UPROPERTY(VisibleAnywhere)
+  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
   UCombatComponent* Combat = nullptr;
 
   UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)

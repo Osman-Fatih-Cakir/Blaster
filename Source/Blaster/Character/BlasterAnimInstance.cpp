@@ -7,6 +7,7 @@
 #include "../DebugHelper.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Blaster/Weapon/Weapon.h"
+#include "Blaster/BlasterTypes/CombatState.h"
 
 void UBlasterAnimInstance::NativeInitializeAnimation()
 {
@@ -67,4 +68,5 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
     LeftHandTransform.SetRotation(FQuat(OutRotation));
   }
   bElimmed = BlasterCharacter->IsElimmed();
+  bUseFABRIK = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
 }

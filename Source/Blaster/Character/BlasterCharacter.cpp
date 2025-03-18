@@ -135,6 +135,10 @@ void ABlasterCharacter::Elim()
 
 void ABlasterCharacter::MulticastElim_Implementation()
 {
+  if (BlasterPlayerController)
+  {
+    BlasterPlayerController->SetHUDWeaponAmmo(0);
+  }
   bElimmed = true;
   PlayElimMontage();
 
@@ -223,6 +227,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ABlasterCharacter::Jump);
     EnhancedInputComponent->BindAction(StartFireAction, ETriggerEvent::Triggered, this, &ThisClass::StartFire_Input);
     EnhancedInputComponent->BindAction(EndFireAction, ETriggerEvent::Triggered, this, &ThisClass::EndFire_Input);
+    EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &ThisClass::Reload_Input);
   }
 }
 
@@ -355,6 +360,14 @@ void ABlasterCharacter::EndFire_Input()
   if (Combat)
   {
     Combat->FireButtonPressed(false);
+  }
+}
+
+void ABlasterCharacter::Reload_Input()
+{
+  if (Combat)
+  {
+    Combat->Reload();
   }
 }
 
@@ -563,4 +576,21 @@ void ABlasterCharacter::PollInit()
       BlasterPlayerState->AddToDefeats(0);
     }
   }
+}
+
+void ABlasterCharacter::PlayReloadMontage()
+{
+  if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+
+  UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+  if (AnimInstance && ReloadMontage)
+  {
+    AnimInstance->Montage_Play(ReloadMontage);
+  }
+}
+
+ECombatState ABlasterCharacter::GetCombatState() const
+{
+  if (Combat == nullptr) return ECombatState::ECS_MAX;
+  return Combat->CombatState;
 }

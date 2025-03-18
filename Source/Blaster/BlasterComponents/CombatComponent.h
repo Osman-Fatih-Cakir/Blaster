@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Blaster/HUD/BlasterHUD.h"
+#include "Blaster/BlasterTypes/CombatState.h"
 #include "CombatComponent.generated.h"
 
 class ABlasterCharacter;
@@ -46,10 +47,25 @@ protected:
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 	void SetHUDCrosshairs(float DeltaTime);
 	void Fire();
+	bool CanFire();
+	void Reload();
+	UFUNCTION(BlueprintCallable)
+	void HandleReload();
+	UFUNCTION()
+	void OnRep_CombatState();
+	void StartFireTimer();
+	void FireTimerFinished();
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
+	UFUNCTION(Server, Reliable)
+	void ServerReload();
 
 protected:
+	UPROPERTY()
 	ABlasterCharacter* Character = nullptr;
+	UPROPERTY()
 	class ABlasterPlayerController* Controller;
+	UPROPERTY()
 	class ABlasterHUD* HUD;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
@@ -77,6 +93,7 @@ protected:
 	FTimerHandle FireTimer;
 	bool bCanFire = true;
 
-	void StartFireTimer();
-	void FireTimerFinished();
+	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
+	ECombatState CombatState = ECombatState::ECS_Unoccupied;
+
 };
