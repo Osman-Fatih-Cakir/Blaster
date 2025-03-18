@@ -34,6 +34,7 @@ public:
 	FORCEINLINE USphereComponent* GetAreaSphere() { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 
+	void Dropped();
 protected:
 	virtual void BeginPlay() override;
 

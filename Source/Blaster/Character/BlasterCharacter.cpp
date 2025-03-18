@@ -118,6 +118,10 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 
 void ABlasterCharacter::Elim()
 {
+  if (Combat && Combat->EquippedWeapon)
+  {
+    Combat->EquippedWeapon->Dropped();
+  }
   MulticastElim();
   GetWorldTimerManager().SetTimer(
     ElimTimer,
@@ -131,6 +135,17 @@ void ABlasterCharacter::MulticastElim_Implementation()
 {
   bElimmed = true;
   PlayElimMontage();
+
+  // Disable character movement
+  GetCharacterMovement()->DisableMovement();
+  GetCharacterMovement()->StopMovementImmediately();
+  if (BlasterPlayerController)
+  {
+    DisableInput(BlasterPlayerController);
+  }
+  // Disable collision
+  GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+  GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ABlasterCharacter::ElimTimerFinished()
