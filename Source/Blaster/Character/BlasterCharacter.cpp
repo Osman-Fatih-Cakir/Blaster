@@ -21,6 +21,7 @@
 #include "Blaster/Blaster.h"
 #include "Blaster/GameMode/BlasterGameMode.h"
 #include "TimerManager.h"
+#include "Blaster/PlayerState/BlasterPlayerState.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -96,6 +97,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
     CalculateAO_Pitch();
   }
   HideCameraIfCharacterClose();
+  PollInit();
 }
 
 void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
@@ -547,5 +549,18 @@ void ABlasterCharacter::ServerEquipButtonOPressed_Implementation()
   if (Combat)
   {
     Combat->EquipWeapon(OverlappingWeapon);
+  }
+}
+
+void ABlasterCharacter::PollInit()
+{
+  if (BlasterPlayerState == nullptr)
+  {
+    BlasterPlayerState = GetPlayerState<ABlasterPlayerState>();
+    if (BlasterPlayerState)
+    {
+      BlasterPlayerState->AddToScore(0.f);
+      BlasterPlayerState->AddToDefeats(0);
+    }
   }
 }

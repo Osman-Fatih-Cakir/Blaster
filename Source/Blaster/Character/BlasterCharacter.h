@@ -80,7 +80,8 @@ protected:
   UFUNCTION()
   void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
   void UpdateHUDHealth();
-
+  // Poll for any relelvant classes and initialize our HUD
+  void PollInit();
 protected:
 
   // Input actions
@@ -119,6 +120,8 @@ protected:
 
   void ElimTimerFinished();
   
+  class ABlasterPlayerState* BlasterPlayerState;
+
   /**
   * Player health
   */
