@@ -118,6 +118,10 @@ void UCombatComponent::EquipWeapon(AWeapon* weapon)
   }
   EquippedWeapon->SetOwner(Character);
   EquippedWeapon->SetHUDAmmo();
+  if (EquippedWeapon->IsEmpty())
+  {
+    Reload();
+  }
   Character->GetCharacterMovement()->bOrientRotationToMovement = false;
   Character->bUseControllerRotationYaw = true;
 }
@@ -184,6 +188,10 @@ void UCombatComponent::FireTimerFinished()
   if (bFireButtonPressed && EquippedWeapon->bAutomatic)
   {
     Fire();
+  }
+  if (EquippedWeapon->IsEmpty())
+  {
+    Reload();
   }
 }
 
