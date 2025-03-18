@@ -165,11 +165,6 @@ void ABlasterCharacter::PlayElimMontage()
     AnimInstance->Montage_Play(ElimMontage);
     FName SectionName("StartDie");
     AnimInstance->Montage_JumpToSection(SectionName);
-
-    if (GetLocalRole() == ROLE_SimulatedProxy)
-    {
-      Debug::Print("Die");
-    }
   }
 }
 
