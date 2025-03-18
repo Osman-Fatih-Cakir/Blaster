@@ -37,9 +37,13 @@ public:
   AWeapon* GetEquippedWeapon();
   FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
   FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
+  FORCEINLINE bool IsElimmed() const { return bElimmed; }
 
   void PlayFireMontage(bool bAiming);
-
+  void Elim();
+  void PlayElimMontage();
+  UFUNCTION(NetMulticast, Reliable)
+  void MulticastElim();
 
 protected:
   virtual void BeginPlay() override;
@@ -101,7 +105,18 @@ protected:
   UInputAction* StartFireAction = nullptr;
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
   UInputAction* EndFireAction = nullptr;
+  UPROPERTY(EditAnywhere, Category = Combat)
+  UAnimMontage* ElimMontage;
 
+  bool bElimmed = false;
+  
+  FTimerHandle ElimTimer;
+
+  UPROPERTY(EditDefaultsOnly)
+  float ElimDelay = 3.f;
+
+  void ElimTimerFinished();
+  
   /**
   * Player health
   */

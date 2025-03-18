@@ -19,6 +19,8 @@
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "BlasterAnimInstance.h"
 #include "Blaster/Blaster.h"
+#include "Blaster/GameMode/BlasterGameMode.h"
+#include "TimerManager.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -102,6 +104,58 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
   UpdateHUDHealth();
   PlayHitReactMontage();
 
+  if (Health == 0.f)
+  {
+    ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+    if (BlasterGameMode)
+    {
+      BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+      ABlasterPlayerController* AttackerController = Cast<ABlasterPlayerController>(InstigatorController);
+      BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, AttackerController);
+    }
+  }
+}
+
+void ABlasterCharacter::Elim()
+{
+  MulticastElim();
+  GetWorldTimerManager().SetTimer(
+    ElimTimer,
+    this,
+    &ABlasterCharacter::ElimTimerFinished,
+    ElimDelay
+  );
+}
+
+void ABlasterCharacter::MulticastElim_Implementation()
+{
+  bElimmed = true;
+  PlayElimMontage();
+}
+
+void ABlasterCharacter::ElimTimerFinished()
+{
+  ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+  if (BlasterGameMode)
+  {
+    BlasterGameMode->RequestRespawn(this, Controller);
+  }
+}
+
+void ABlasterCharacter::PlayElimMontage()
+{
+  UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+  if (AnimInstance && ElimMontage)
+  {
+    AnimInstance->Montage_Play(ElimMontage);
+    FName SectionName("StartDie");
+    AnimInstance->Montage_JumpToSection(SectionName);
+
+    if (GetLocalRole() == ROLE_SimulatedProxy)
+    {
+      Debug::Print("Die");
+    }
+  }
 }
 
 float ABlasterCharacter::CalculateSpeed()
@@ -110,6 +164,7 @@ float ABlasterCharacter::CalculateSpeed()
   Velocity.Z = 0.f;
   return Velocity.Size();
 }
+
 
 void ABlasterCharacter::HideCameraIfCharacterClose()
 {

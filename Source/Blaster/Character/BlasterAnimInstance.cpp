@@ -66,4 +66,5 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
     LeftHandTransform.SetLocation(OutPosition);
     LeftHandTransform.SetRotation(FQuat(OutRotation));
   }
+  bElimmed = BlasterCharacter->IsElimmed();
 }
