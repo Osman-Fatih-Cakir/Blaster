@@ -35,6 +35,9 @@ public:
 	FORCEINLINE USphereComponent* GetAreaSphere() { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	bool IsEmpty();
+  FORCEINLINE float GetMagCapacity() const { return MagCapacity; }
+	void SetAmmo(float ammo);
+	FORCEINLINE int32 GetAmmo() const { return Ammo; }
 
 	void Dropped();
 protected:

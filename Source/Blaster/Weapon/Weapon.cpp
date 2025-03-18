@@ -211,3 +211,9 @@ bool AWeapon::IsEmpty()
 {
   return Ammo <= 0;
 }
+
+void AWeapon::SetAmmo(float ammo)
+{
+  Ammo = ammo;
+  SetHUDAmmo();
+}
