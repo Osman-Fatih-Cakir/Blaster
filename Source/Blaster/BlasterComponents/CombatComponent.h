@@ -45,6 +45,7 @@ protected:
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 	void SetHUDCrosshairs(float DeltaTime);
+	void Fire();
 
 protected:
 	ABlasterCharacter* Character = nullptr;
@@ -68,4 +69,14 @@ protected:
 	FVector HitTarget;
 
 	FHUDPackage HUDPackage;
+
+	/**
+	* Automatic fire
+	*/
+
+	FTimerHandle FireTimer;
+	bool bCanFire = true;
+
+	void StartFireTimer();
+	void FireTimerFinished();
 };

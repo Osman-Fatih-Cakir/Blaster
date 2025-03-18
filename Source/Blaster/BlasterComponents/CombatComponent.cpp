@@ -13,6 +13,7 @@
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Blaster/HUD/BlasterHUD.h"
 #include "../DebugHelper.h"
+#include "TimerManager.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -132,11 +133,40 @@ void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
   bFireButtonPressed = bPressed;
-  if (bFireButtonPressed)
+  if (bFireButtonPressed && EquippedWeapon)
   {
-    FHitResult HitResult;
-    TraceUnderCrosshairs(HitResult);
-    ServerFire(HitResult.ImpactPoint);
+    Fire();
+  }
+}
+
+void UCombatComponent::Fire()
+{
+  if (bCanFire)
+  {
+    bCanFire = false;
+    ServerFire(HitTarget);
+    StartFireTimer();
+  }
+}
+
+void UCombatComponent::StartFireTimer()
+{
+  if (EquippedWeapon == nullptr || Character == nullptr) return;
+  Character->GetWorldTimerManager().SetTimer(
+    FireTimer,
+    this,
+    &UCombatComponent::FireTimerFinished,
+    EquippedWeapon->FireDelay
+  );
+}
+
+void UCombatComponent::FireTimerFinished()
+{
+  if (EquippedWeapon == nullptr) return;
+  bCanFire = true;
+  if (bFireButtonPressed && EquippedWeapon->bAutomatic)
+  {
+    Fire();
   }
 }
 

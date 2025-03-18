@@ -52,6 +52,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 
   bAiming = BlasterCharacter->IsAiming();
   TurningInPlace = BlasterCharacter->GetTurningInPlace();
+  bRotateRootBone = BlasterCharacter->ShouldRotateRootBone();
 
   AO_Yaw = BlasterCharacter->GetAO_Yaw();
   AO_Pitch = BlasterCharacter->GetAO_Pitch();

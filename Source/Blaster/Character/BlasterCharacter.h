@@ -36,6 +36,7 @@ public:
   FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
   AWeapon* GetEquippedWeapon();
   FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
+  FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 
   void PlayFireMontage(bool bAiming);
 
@@ -58,6 +59,11 @@ protected:
 
   void AimOffset(float deltaTime);
   void TurnInPlace(float DeltaTime);
+  void CalculateAO_Pitch();
+  void SimProxiesTurn();
+  float CalculateSpeed();
+
+  virtual void OnRep_ReplicatedMovement() override;
 
   UFUNCTION()
   void OnRep_OverlappingWeapon(AWeapon* lastWeapon);
@@ -67,6 +73,9 @@ protected:
 
   void HideCameraIfCharacterClose();
   void PlayHitReactMontage();
+
+
+
 
 protected:
 
@@ -91,11 +100,20 @@ protected:
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
   UInputAction* UnAimAction = nullptr;
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-  UInputAction* FireAction = nullptr;
+  UInputAction* StartFireAction = nullptr;
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+  UInputAction* EndFireAction = nullptr;
 
 
   UPROPERTY(EditAnywhere)
   float CameraThreshold = 200.f;
+
+  bool bRotateRootBone;
+  float TurnThreshold = 0.5f;
+  FRotator ProxyRotationLastFrame;
+  FRotator ProxyRotation;
+  float ProxyYaw;
+  float TimeSinceLastMovementReplication;
 
   //
 

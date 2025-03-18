@@ -73,8 +73,27 @@ void ABlasterCharacter::Tick(float DeltaTime)
 {
   Super::Tick(DeltaTime);
 
-  AimOffset(DeltaTime);
+  if (GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled())
+  {
+    AimOffset(DeltaTime);
+  }
+  else
+  {
+    TimeSinceLastMovementReplication += DeltaTime;
+    if (TimeSinceLastMovementReplication > 0.25f)
+    {
+      OnRep_ReplicatedMovement();
+    }
+    CalculateAO_Pitch();
+  }
   HideCameraIfCharacterClose();
+}
+
+float ABlasterCharacter::CalculateSpeed()
+{
+  FVector Velocity = GetVelocity();
+  Velocity.Z = 0.f;
+  return Velocity.Size();
 }
 
 void ABlasterCharacter::HideCameraIfCharacterClose()
@@ -120,8 +139,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     EnhancedInputComponent->BindAction(UnAimAction, ETriggerEvent::Triggered, this, &ThisClass::UnAim_Input);
 
     PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ABlasterCharacter::Jump);
-    EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ThisClass::StartFire_Input);
-    EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ThisClass::EndFire_Input);
+    EnhancedInputComponent->BindAction(StartFireAction, ETriggerEvent::Triggered, this, &ThisClass::StartFire_Input);
+    EnhancedInputComponent->BindAction(EndFireAction, ETriggerEvent::Triggered, this, &ThisClass::EndFire_Input);
   }
 }
 
@@ -260,13 +279,12 @@ void ABlasterCharacter::AimOffset(float deltaTime)
 {
   if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
 
-  FVector Velocity = GetVelocity();
-  Velocity.Z = 0.f;
-  float Speed = Velocity.Size();
+  float Speed = CalculateSpeed();
   bool bIsInAir = GetCharacterMovement()->IsFalling();
 
   if (FMath::Abs(Speed) < 0.01f && !bIsInAir) // standing still, not jumping
   {
+    bRotateRootBone = true;
     FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
     FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
     AO_Yaw = DeltaAimRotation.Yaw;
@@ -279,12 +297,18 @@ void ABlasterCharacter::AimOffset(float deltaTime)
   }
   if (Speed > 0.f || bIsInAir) // running, or jumping
   {
+    bRotateRootBone = false;
     StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
     AO_Yaw = 0.f;
     bUseControllerRotationYaw = true;
     TurningInPlace = ETurningInPlace::ETIP_NotTurning;
   }
 
+  CalculateAO_Pitch();
+}
+
+void ABlasterCharacter::CalculateAO_Pitch()
+{
   AO_Pitch = GetBaseAimRotation().Pitch;
   if (AO_Pitch > 90.0f && !IsLocallyControlled())
   {
@@ -292,6 +316,43 @@ void ABlasterCharacter::AimOffset(float deltaTime)
     // map pitch from [270, 360] to [-90, 0]
     AO_Pitch = FMath::GetMappedRangeValueClamped(FVector2D(270.f, 360.f), FVector2D(-90.f, 0.f), AO_Pitch);
   }
+}
+
+void ABlasterCharacter::SimProxiesTurn()
+{
+  if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+  bRotateRootBone = false;
+  float Speed = CalculateSpeed();
+  if (Speed > 0.f)
+  {
+    TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+    return;
+  }
+
+  ProxyRotationLastFrame = ProxyRotation;
+  ProxyRotation = GetActorRotation();
+  ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
+
+  UE_LOG(LogTemp, Warning, TEXT("ProxyYaw: %f"), ProxyYaw);
+
+  if (FMath::Abs(ProxyYaw) > TurnThreshold)
+  {
+    if (ProxyYaw > TurnThreshold)
+    {
+      TurningInPlace = ETurningInPlace::ETIP_Right;
+    }
+    else if (ProxyYaw < -TurnThreshold)
+    {
+      TurningInPlace = ETurningInPlace::ETIP_Left;
+    }
+    else
+    {
+      TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+    }
+    return;
+  }
+  TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+
 }
 
 void ABlasterCharacter::TurnInPlace(float DeltaTime)
@@ -314,6 +375,13 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime)
       StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
     }
   }
+}
+
+void ABlasterCharacter::OnRep_ReplicatedMovement()
+{
+  Super::OnRep_ReplicatedMovement();
+  SimProxiesTurn();
+  TimeSinceLastMovementReplication = 0.f;
 }
 
 void ABlasterCharacter::PlayFireMontage(bool bAiming)
