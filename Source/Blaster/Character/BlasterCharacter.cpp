@@ -16,6 +16,7 @@
 #include "../DebugHelper.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "BlasterAnimInstance.h"
 #include "Blaster/Blaster.h"
 
@@ -67,6 +68,12 @@ void ABlasterCharacter::BeginPlay()
       Subsystem->AddMappingContext(DefaultMappingContext, 0);
     }
   }
+
+  UpdateHUDHealth();
+  if (HasAuthority())
+  {
+    OnTakeAnyDamage.AddDynamic(this, &ABlasterCharacter::ReceiveDamage);
+  }
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -87,6 +94,14 @@ void ABlasterCharacter::Tick(float DeltaTime)
     CalculateAO_Pitch();
   }
   HideCameraIfCharacterClose();
+}
+
+void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
+{
+  Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+  UpdateHUDHealth();
+  PlayHitReactMontage();
+
 }
 
 float ABlasterCharacter::CalculateSpeed()
@@ -149,6 +164,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
   Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
   DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
+  DOREPLIFETIME(ABlasterCharacter, Health);
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -384,6 +400,21 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
   TimeSinceLastMovementReplication = 0.f;
 }
 
+void ABlasterCharacter::OnRep_Health()
+{
+  UpdateHUDHealth();
+  PlayHitReactMontage();
+}
+
+void ABlasterCharacter::UpdateHUDHealth()
+{
+  BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+  if (BlasterPlayerController)
+  {
+    BlasterPlayerController->SetHUDHealth(Health, MaxHealth);
+  }
+}
+
 void ABlasterCharacter::PlayFireMontage(bool bAiming)
 {
   if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
@@ -452,9 +483,4 @@ void ABlasterCharacter::ServerEquipButtonOPressed_Implementation()
   {
     Combat->EquipWeapon(OverlappingWeapon);
   }
-}
-
-void ABlasterCharacter::MulticastHit_Implementation()
-{
-  PlayHitReactMontage();
 }

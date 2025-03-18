@@ -40,8 +40,6 @@ public:
 
   void PlayFireMontage(bool bAiming);
 
-  UFUNCTION(NetMulticast, Unreliable)
-  void MulticastHit();
 
 protected:
   virtual void BeginPlay() override;
@@ -73,9 +71,9 @@ protected:
 
   void HideCameraIfCharacterClose();
   void PlayHitReactMontage();
-
-
-
+  UFUNCTION()
+  void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
+  void UpdateHUDHealth();
 
 protected:
 
@@ -104,6 +102,18 @@ protected:
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
   UInputAction* EndFireAction = nullptr;
 
+  /**
+  * Player health
+  */
+
+  UPROPERTY(EditAnywhere, Category = "Player Stats")
+  float MaxHealth = 100.f;
+
+  UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+  float Health = 100.f;
+
+  UFUNCTION()
+  void OnRep_Health();
 
   UPROPERTY(EditAnywhere)
   float CameraThreshold = 200.f;
@@ -114,6 +124,8 @@ protected:
   FRotator ProxyRotation;
   float ProxyYaw;
   float TimeSinceLastMovementReplication;
+
+  class ABlasterPlayerController* BlasterPlayerController;
 
   //
 
